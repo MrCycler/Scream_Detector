@@ -1,0 +1,2 @@
+- Cargar el archivo MODELO.ipynb en COLAB
+- Correrlo
