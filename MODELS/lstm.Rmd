@@ -1,0 +1,158 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.5.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+import librosa
+import glob
+
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, Flatten, Dense, MaxPool2D, Dropout, LSTM
+from tensorflow.keras.utils import to_categorical
+
+import IPython.display as ipd
+#from custom_callbacks import LrFinder, reset_weights, CycleLearner, save_weights
+```
+
+```{python}
+# se usa del GPU
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#print(device)
+```
+
+```{python colab={'base_uri': 'https://localhost:8080/', 'height': 197}, colab_type="code", executionInfo={'elapsed': 7353, 'status': 'ok', 'timestamp': 1591846569889, 'user': {'displayName': 'JUAN MANUEL MENDOZA JACINTO', 'photoUrl': 'https://lh3.googleusercontent.com/a-/AOh14GjqzRmr_78w7iF9UHrl5RLxStJ54OAcp7xAkk7_52Y=s64', 'userId': '08286022155372389049'}, 'user_tz': 300}, id="9S3M-we7mAfh", outputId="892bd244-498e-4268-9ee9-77522efb1fe8"}
+# se lee el dataframe
+#df = pd.read_csv("UrbanSound8K/metadata/UrbanSound8K.csv")
+#df.head()
+```
+
+```{python}
+def grab_sound_features(filename):
+    sample_rate = 12000
+    duration = 3
+
+    # Cargamos el audio
+    X, sample_rate = librosa.load(filename, sr=sample_rate, res_type='kaiser_fast')
+    n_sample = X.shape[0]
+    n_sample_fit = int(duration*sample_rate)
+
+    # Si el audio es muy grande, limitamos la duracion del audio.
+    # Si es menor se completa con ceros.
+    if n_sample < n_sample_fit:
+        X = np.hstack((X, np.zeros((n_sample_fit - n_sample,))))
+    elif n_sample > n_sample_fit:
+        X = X[int((n_sample-n_sample_fit)/2):int((n_sample+n_sample_fit)/2)]
+    
+    return librosa.feature.melspectrogram(y=X, sr=sample_rate)
+
+def parser():
+    feature = []
+    label = []
+    # Funcion para cargar archivos y extraer caracteristicas
+    for filename in glob.glob("data/scream/*.wav"):
+        mels = grab_sound_features(filename)
+        feature.append(mels)
+        label.append(1)
+    for filename in glob.glob("data/no-scream/*.wav"):
+        mels = grab_sound_features(filename)
+        feature.append(mels)
+        label.append(0)
+    return [feature, label]
+```
+
+```{python}
+data = np.array(parser()).transpose()
+n = data.shape[0]
+```
+
+```{python}
+data[0,0].shape
+```
+
+```{python colab={'base_uri': 'https://localhost:8080/', 'height': 34}, colab_type="code", executionInfo={'elapsed': 1865480, 'status': 'ok', 'timestamp': 1591848428069, 'user': {'displayName': 'JUAN MANUEL MENDOZA JACINTO', 'photoUrl': 'https://lh3.googleusercontent.com/a-/AOh14GjqzRmr_78w7iF9UHrl5RLxStJ54OAcp7xAkk7_52Y=s64', 'userId': '08286022155372389049'}, 'user_tz': 300}, id="L-YtlMi9mAla", outputId="166aa952-487d-48ac-eb6b-9e7dad82691e"}
+X_ = data[:, 0]
+Y = data[:, 1]
+print(X_.shape, Y.shape)
+X = np.empty([n, data[0,0].shape[0], data[0,0].shape[1]])
+```
+
+```{python colab={}, colab_type="code", id="zB_PeyrsPKnJ"}
+for i in range(n):
+    X[i] = (X_[i])
+```
+
+```{python colab={}, colab_type="code", id="rR5A7axGPLSu"}
+Y = to_categorical(Y)
+```
+
+```{python colab={'base_uri': 'https://localhost:8080/', 'height': 52}, colab_type="code", executionInfo={'elapsed': 1865481, 'status': 'ok', 'timestamp': 1591848428083, 'user': {'displayName': 'JUAN MANUEL MENDOZA JACINTO', 'photoUrl': 'https://lh3.googleusercontent.com/a-/AOh14GjqzRmr_78w7iF9UHrl5RLxStJ54OAcp7xAkk7_52Y=s64', 'userId': '08286022155372389049'}, 'user_tz': 300}, id="iFSsayXaPOIX", outputId="67af3891-b0cf-41c7-a5fd-03f2b4f1e668"}
+'''Final Data'''
+print(X.shape)
+print(Y.shape)
+```
+
+```{python colab={}, colab_type="code", id="XWrWo2eLPT4p"}
+# se conforman los conjuntos de entrenamiento y prueba
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, random_state = 1)
+```
+
+```{python colab={}, colab_type="code", id="wFj1gvx6PWr2"}
+# se ajusta el tamaño de los sets
+#X_train = X_train.reshape(X_train.shape[0], 16, 8, 1)
+#X_test = X_test.reshape(X_test.shape[0], 16, 8, 1)
+```
+
+```{python colab={}, colab_type="code", id="-p7CkvD2PW2e"}
+#input_dim = (16, 8, 1)
+```
+
+```{python}
+input_dim = (X_train.shape[1], X_train.shape[2])
+```
+
+```{python}
+# Crea el modelo en tensorflow keras
+model = Sequential()
+
+# Definimos un modelo LSTM many to one
+model.add(LSTM(units=256, dropout=0.05, recurrent_dropout=0.35, return_sequences=True, input_shape=input_dim))
+model.add(LSTM(units=128, dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
+model.add(LSTM(units=64,  dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
+model.add(LSTM(units=32,  dropout=0.05, recurrent_dropout=0.35, return_sequences=False))
+model.add(Dense(units=2, activation="softmax"))
+
+model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+
+model.summary()
+```
+
+```{python colab={'base_uri': 'https://localhost:8080/', 'height': 1000}, colab_type="code", executionInfo={'elapsed': 1936811, 'status': 'ok', 'timestamp': 1591848499455, 'user': {'displayName': 'JUAN MANUEL MENDOZA JACINTO', 'photoUrl': 'https://lh3.googleusercontent.com/a-/AOh14GjqzRmr_78w7iF9UHrl5RLxStJ54OAcp7xAkk7_52Y=s64', 'userId': '08286022155372389049'}, 'user_tz': 300}, id="EDnrOMFNPXDV", outputId="fb451152-4bf7-4b42-da9f-e26c83745de0"}
+# se entrena el modelo en 90 epocas y batch size de 50
+#model.fit(X_train, Y_train, epochs = 90, batch_size = 50, validation_data = (X_test, Y_test))
+model.fit(X_train, Y_train, epochs = 50, batch_size = 50, validation_data = (X_test, Y_test))
+```
+
+```{python colab={'base_uri': 'https://localhost:8080/', 'height': 52}, colab_type="code", executionInfo={'elapsed': 1937244, 'status': 'ok', 'timestamp': 1591848499896, 'user': {'displayName': 'JUAN MANUEL MENDOZA JACINTO', 'photoUrl': 'https://lh3.googleusercontent.com/a-/AOh14GjqzRmr_78w7iF9UHrl5RLxStJ54OAcp7xAkk7_52Y=s64', 'userId': '08286022155372389049'}, 'user_tz': 300}, id="cw453K4KQGGi", outputId="54ffee9f-327e-4bdd-9c10-35d69588b53e"}
+# se muestra el accuracy final obtenido
+predictions = model.predict(X_test)
+score = model.evaluate(X_test, Y_test)
+print(score)
+```
+
+```{python colab={}, colab_type="code", id="hGwzsf7HRIqP"}
+# Guardar el Modelo
+model.save('crnn.h5')
+```
