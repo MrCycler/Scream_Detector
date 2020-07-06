@@ -5,7 +5,7 @@ jupyter:
       extension: .Rmd
       format_name: rmarkdown
       format_version: '1.2'
-      jupytext_version: 1.5.0
+      jupytext_version: 1.5.1
   kernelspec:
     display_name: Python 3
     language: python
@@ -55,7 +55,7 @@ def grab_sound_features(filename):
     elif n_sample > n_sample_fit:
         X = X[int((n_sample-n_sample_fit)/2):int((n_sample+n_sample_fit)/2)]
     
-    return librosa.feature.melspectrogram(y=X, sr=sample_rate)
+    return librosa.feature.melspectrogram(y=X, sr=sample_rate).transpose()
 
 def parser():
     feature = []
@@ -73,8 +73,8 @@ def parser():
 ```
 
 ```{python}
-data = np.array(parser()).transpose()
-n = data.shape[0]
+data = np.array(parser())
+n = data.shape[1]
 ```
 
 ```{python}
@@ -82,8 +82,8 @@ data[0,0].shape
 ```
 
 ```{python}
-X_ = data[:, 0]
-Y = data[:, 1]
+X_ = data[0, :]
+Y = data[1, :]
 print(X_.shape, Y.shape)
 X = np.empty([n, data[0,0].shape[0], data[0,0].shape[1]])
 ```
@@ -91,6 +91,11 @@ X = np.empty([n, data[0,0].shape[0], data[0,0].shape[1]])
 ```{python}
 for i in range(n):
     X[i] = (X_[i])
+```
+
+```{python}
+# Convertimos los labels a 2-D
+Y = np.tile(Y,(data[0,0].shape[0],1)).transpose()
 ```
 
 ```{python}
@@ -123,14 +128,19 @@ input_dim = (X_train.shape[1], X_train.shape[2])
 ```
 
 ```{python}
+input_dim
+```
+
+```{python}
 # Crea el modelo en tensorflow keras
 model = Sequential()
 
-# Definimos un modelo LSTM many to one
+# Definimos un modelo LSTM many-to-many
 model.add(LSTM(units=256, dropout=0.05, recurrent_dropout=0.35, return_sequences=True, input_shape=input_dim))
+#model.add(LSTM(units=128, return_sequences=True, input_shape=(71, 128)))
 model.add(LSTM(units=128, dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
 model.add(LSTM(units=64,  dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
-model.add(LSTM(units=32,  dropout=0.05, recurrent_dropout=0.35, return_sequences=False))
+model.add(LSTM(units=32,  dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
 model.add(Dense(units=2, activation="softmax"))
 
 model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
@@ -139,9 +149,9 @@ model.summary()
 ```
 
 ```{python}
-# se entrena el modelo en 90 epocas y batch size de 50
-#model.fit(X_train, Y_train, epochs = 90, batch_size = 50, validation_data = (X_test, Y_test))
-history = model.fit(X_train, Y_train, epochs = 50, batch_size = 50, validation_data = (X_test, Y_test))
+# se entrena el modelo en 50 epocas
+history = model.fit(X_train, Y_train, epochs = 50, validation_data = (X_test, Y_test))
+
 ```
 
 ```{python}
@@ -164,8 +174,8 @@ pyplot.legend()
 pyplot.xlabel('Epochs', fontsize = 12)
 pyplot.ylabel('Loss', fontsize = 12)
 pyplot.show()
-pyplot.plot(history.history['acc'], label='train')
-pyplot.plot(history.history['val_acc'], label='test')
+pyplot.plot(history.history['accuracy'], label='train')
+pyplot.plot(history.history['val_accuracy'], label='test')
 pyplot.legend()
 pyplot.xlabel('Epochs', fontsize = 12)
 pyplot.ylabel('Accuracy', fontsize = 12)
