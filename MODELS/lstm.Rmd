@@ -49,11 +49,12 @@ def grab_sound_features(filename):
     n_sample_fit = int(duration*sample_rate)
 
     # Si el audio es muy grande, limitamos la duracion del audio.
-    # Si es menor se completa con ceros.
+    # Si es audio es muy pequeño se completa con ceros.
+    # En ambos casos ponemos un silencio de 0.5 segundos
     if n_sample < n_sample_fit:
-        X = np.hstack((X, np.zeros((n_sample_fit - n_sample,))))
+        X = np.hstack((0.5*sample_rate, X, np.zeros(n_sample_fit - n_sample)))
     elif n_sample > n_sample_fit:
-        X = X[int((n_sample-n_sample_fit)/2):int((n_sample+n_sample_fit)/2)]
+        X = np.hstack((0.5*sample_rate, X[int((n_sample-n_sample_fit)/2):int((n_sample+n_sample_fit)/2)]))
     
     return librosa.feature.melspectrogram(y=X, sr=sample_rate).transpose()
 
@@ -137,7 +138,6 @@ model = Sequential()
 
 # Definimos un modelo LSTM many-to-many
 model.add(LSTM(units=256, dropout=0.05, recurrent_dropout=0.35, return_sequences=True, input_shape=input_dim))
-#model.add(LSTM(units=128, return_sequences=True, input_shape=(71, 128)))
 model.add(LSTM(units=128, dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
 model.add(LSTM(units=64,  dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
 model.add(LSTM(units=32,  dropout=0.05, recurrent_dropout=0.35, return_sequences=True))
@@ -151,7 +151,6 @@ model.summary()
 ```{python}
 # se entrena el modelo en 50 epocas
 history = model.fit(X_train, Y_train, epochs = 50, validation_data = (X_test, Y_test))
-
 ```
 
 ```{python}
