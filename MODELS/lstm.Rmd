@@ -33,12 +33,6 @@ from matplotlib import pyplot
 ```
 
 ```{python}
-# se lee el dataframe
-#df = pd.read_csv("UrbanSound8K/metadata/UrbanSound8K.csv")
-#df.head()
-```
-
-```{python}
 def grab_sound_features(filename):
     sample_rate = 12000
     duration = 3
@@ -52,9 +46,9 @@ def grab_sound_features(filename):
     # Si es audio es muy pequeño se completa con ceros.
     # En ambos casos ponemos un silencio de 0.5 segundos
     if n_sample < n_sample_fit:
-        X = np.hstack((0.5*sample_rate, X, np.zeros(n_sample_fit - n_sample)))
+        X = np.hstack((0.5*sample_rate, X, np.zeros(n_sample_fit - n_sample), 0.5*sample_rate))
     elif n_sample > n_sample_fit:
-        X = np.hstack((0.5*sample_rate, X[int((n_sample-n_sample_fit)/2):int((n_sample+n_sample_fit)/2)]))
+        X = np.hstack((0.5*sample_rate, X[int((n_sample-n_sample_fit)/2):int((n_sample+n_sample_fit)/2)], 0.5*sample_rate))
     
     return librosa.feature.melspectrogram(y=X, sr=sample_rate).transpose()
 
@@ -115,16 +109,6 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, random_state = 1)
 ```
 
 ```{python}
-# se ajusta el tamaño de los sets
-#X_train = X_train.reshape(X_train.shape[0], 16, 8, 1)
-#X_test = X_test.reshape(X_test.shape[0], 16, 8, 1)
-```
-
-```{python}
-#input_dim = (16, 8, 1)
-```
-
-```{python}
 input_dim = (X_train.shape[1], X_train.shape[2])
 ```
 
@@ -150,7 +134,7 @@ model.summary()
 
 ```{python}
 # se entrena el modelo en 50 epocas
-history = model.fit(X_train, Y_train, epochs = 50, validation_data = (X_test, Y_test))
+history = model.fit(X_train, Y_train, epochs = 20, validation_data = (X_test, Y_test))
 ```
 
 ```{python}
