@@ -33,16 +33,13 @@ def grab_sound_features(filename):
 ```
 
 ```{python}
-#model = load_model('lstm_01-base.h5')
-model = load_model('lstm_02-front-padding.h5')
+model = load_model('lstm.h5')
 ```
 
 ```{python}
 # [no-scream, scream]
-#filename = "data/no-scream/344-3-0-0.wav"
-#filename = "data/scream/2scream.wav"
-#filename = "data/s-ns.wav"
-filename = "data/ns-s.wav"
+# Downloaded from: https://www.youtube.com/watch?v=m8Jm9_iR6cg
+filename = "data/Spider-Man 2 - Cafe Kidnapping Scene (5_10) _ Movieclips.mp3"
 X = grab_sound_features(filename)
 X2 = X[None,:]
 result = model.predict(X2)
