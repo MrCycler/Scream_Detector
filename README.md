@@ -1,4 +1,4 @@
-# SCREAM  DETECTOR
+# SCREAM  DETECTOR (DETECTOR DE GRITOS EN AUDIOS - SITUACIONES DE PELIGRO)
 
 ## Datos del curso 📘
 
@@ -15,6 +15,11 @@ Para la aplicación se entrenaron 2 modelos: CNN y LSTM. A continuación se pres
 
 <p align="center"> 
     <img src='IMAGENES/training_cnn.png' alt="Resultado">
+</p>
+
+Analizando la probabilidad de presencia de gritos en un track de larga duración:
+<p align="center"> 
+    <img src='IMAGENES/spiderman.png' alt="Resultado2">
 </p>
 
 ## Arquitectura y estructura de archivos 🏢
@@ -44,7 +49,7 @@ git clone https://github.com/fararay/Scream_Detector.git
 # Instalamos las dependencias del proyecto
 !pip install xxxxxxxx'
 ```
-- Descargar los datasets solicitados pòr el cuaderno de los enlaces listados a continuación.
+- Descargar los datasets solicitados por el cuaderno de los enlaces listados a continuación.
 
 - Ejecutar el cuaderno.
 
@@ -62,11 +67,12 @@ git clone https://github.com/fararay/Scream_Detector.git
 
 <p align="center"> 
     <img src='https://dci.pucp.edu.pe/wp-content/uploads/2014/02/logo-negro-pucp.jpg' alt="Resultado">
+    <h1>ESCUELA DE POSGRADO</h1>
 </p>
 
-* **Juan Manuel Mendoza Jacinto** - [Linkedin](https://pe.linkedin.com/in/juan-manuel-mendoza-jacinto-18515ab0) - [Github](https://github.com/fararay)
+* **Jose Ulises Morales Pariona** - [Github](https://github.com/ulises968)
 
-* **Jose Ulises Morales Pariona** - [Linkedin](https://pe.linkedin.com/in/juan-manuel-mendoza-jacinto-18515ab0) - [Github](https://github.com/ulises968)
+* **Juan Manuel Mendoza Jacinto** - [Linkedin](https://pe.linkedin.com/in/juan-manuel-mendoza-jacinto-18515ab0) - [Github](https://github.com/fararay)
 
 * **Percy Kim Tippe Quintanilla** - [Linkedin](https://www.linkedin.com/in/percy-tippe-1713048/?originalSubdomain=pe) - [Github](https://github.com/fararay)
 
